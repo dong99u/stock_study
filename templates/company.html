@@ -1,0 +1,45 @@
+{% extends 'base.html' %} {% block title %} Hwibong - {{company_title}} {%
+endblock %} {% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% endblock %} {% block content %}
+<header>
+	<h1>{{company_title}}</h1>
+</header>
+<section>
+	<div>
+		<canvas id="myChart"></canvas>
+	</div>
+	<script>
+		const ctx = document.getElementById("myChart").getContext("2d");
+		const myChart = new Chart(ctx, {
+			type: "line",
+			data: {
+				labels: {{ labels | tojson }},
+				datasets: [
+					{
+						label: "closing price",
+						data: {{ values | tojson }},
+						backgroundColor: [
+							"rgba(255, 99, 132, 0.2)"
+						],
+						borderColor: [
+							"rgba(255, 99, 132, 1)"
+						],
+						borderWidth: 2,
+						tension: 0.1
+					},
+				],
+			},
+			options: {
+				scales: {
+					y: {
+						beginAtZero: true,
+					},
+				},
+			},
+		});
+	</script>
+</section>
+
+{% endblock %}

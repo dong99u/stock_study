@@ -1,0 +1,34 @@
+{% extends 'base.html' %} {% block title %} Hwibong Finance - Last Search {%
+endblock %} {% block head %}
+<style>
+	.grid_container {
+		display: grid;
+		grid-template-columns: repeat({{length_df}}, minmax(50px, auto));
+		gap: 10px;
+	}
+	a:link,
+	a:visited {
+		color: #bbc6ce;
+	}
+</style>
+{% endblock %} {% block content %}
+<section class="grid_container">
+	{% for column in df.columns %}
+	<span>{{column}}</span>
+	{% endfor %} {% for idx, row in df.iterrows() %} {% set code =
+	company_code_list.pop(0) %} {% for data in row %} {% if data is not string
+	%} {% if data - data|int == 0.0 %}
+	<a href="/last/{{ code }}">
+		<span>{{ data | int }}</span>
+	</a>
+	{% else %}
+	<a href="/last/{{ code }}">
+		<span>{{ data }}</span>
+	</a>
+	{% endif %} {% else %}
+	<a href="/last/{{ code }}">
+		<span>{{ data }}</span>
+	</a>
+	{% endif %} {% endfor %} {% endfor %}
+</section>
+{% endblock %}

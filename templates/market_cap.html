@@ -1,0 +1,36 @@
+{% extends 'base.html' %} {% block title %} Hwibong Finance - Market Cap {%
+endblock %} {% block head %}
+<style>
+	.grid_container {
+		display: grid;
+		grid-template-columns: repeat({{length_df}}, minmax(50px, auto));
+	}
+</style>
+{% endblock %} {% block content %}
+<section class="grid_container">
+	{% for column in df.columns %}
+	<span>{{column}}</span>
+	{% endfor %} {% for idx, row in df.iterrows() %} {% for data in row %} {% if
+	data is string %} {%if data.split()[0] == '상승' %}
+	<span
+		><img
+			src="https://ssl.pstatic.net/imgstock/images/images4/ico_up.gif"
+			alt=""
+		/>
+		{{data.split()[1]|int}}</span
+	>
+	{% elif data.split()[0] == '하락' %}
+	<span
+		><img
+			src="https://ssl.pstatic.net/imgstock/images/images4/ico_down.gif"
+			alt=""
+		/>
+		{{data.split()[1]|int}}</span
+	>
+	{% else %}
+	<span>{{data}}</span>
+	{% endif %} {% else %}
+	<span>{{data|int}}</span>
+	{% endif %} {% endfor %} {% endfor%}
+</section>
+{% endblock %}
