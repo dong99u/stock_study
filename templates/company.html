@@ -1,8 +1,16 @@
 {% extends 'base.html' %} {% block title %} Hwibong - {{company_title}} {%
 endblock %} {% block head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"
+	integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA=="
+	crossorigin="anonymous"
+	referrerpolicy="no-referrer"
+></script>
 
 {% endblock %} {% block content %}
+<form action="">
+	<input type="button" value="뒤로가기" onclick="history.back()" />
+</form>
 <header>
 	<h1>{{company_title}}</h1>
 </header>
@@ -11,35 +19,57 @@ endblock %} {% block head %}
 		<canvas id="myChart"></canvas>
 	</div>
 	<script>
-		const ctx = document.getElementById("myChart").getContext("2d");
+		const ctx = document.getElementById('myChart');
 		const myChart = new Chart(ctx, {
-			type: "line",
+			type: 'line',
 			data: {
 				labels: {{ labels | tojson }},
 				datasets: [
-					{
-						label: "closing price",
-						data: {{ values | tojson }},
-						backgroundColor: [
-							"rgba(255, 99, 132, 0.2)"
-						],
-						borderColor: [
-							"rgba(255, 99, 132, 1)"
-						],
-						borderWidth: 2,
-						tension: 0.1
-					},
-				],
+				{
+					label: 'Closing Price',
+					data: {{ closing_prices | tojson }},
+					borderColor: '#F05365',
+					lineTension: 0.4
+				},
+				{
+					label: "Tendency",
+					data: [{x: '{{ tendency[0] }}', y: {{ tendency[2] }}}, {x: '{{ tendency[1] }}', y: {{ tendency[3] }}}],
+					borderColor: '#61C9A8',
+				}
+				]
 			},
 			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
+				responsive: true,
+				plugins: {
+					legend: {
+						position: 'top',
 					},
-				},
-			},
+					title: {
+						display: true,
+						text: '{{company_title}}'
+					}
+				}
+			}
 		});
 	</script>
 </section>
+<table>
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Description</th>
+			<th>Link</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for script in scripts %}
+		<tr>
+			<td>{{ script['title'] }}</td>
+			<td>{{ script['description'] }}</td>
+			<td><a href="{{ script['link'] }}" target="_blank">Go</a></td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
 
 {% endblock %}

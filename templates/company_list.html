@@ -18,15 +18,15 @@ endblock %} {% block head %}
 	{% endfor %} {% for idx, row in df.iterrows() %} {% set code =
 	company_code_list.pop(0) %} {% for data in row %} {% if data is not string
 	%} {% if data - data|int == 0.0 %}
-	<a href="/last/{{ code }}">
+	<a href="/{{ code }}">
 		<span>{{ data | int }}</span>
 	</a>
 	{% else %}
-	<a href="/last/{{ code }}">
+	<a href="/{{ code }}">
 		<span>{{ data }}</span>
 	</a>
 	{% endif %} {% else %}
-	<a href="/last/{{ code }}">
+	<a href="/{{ code }}">
 		<span>{{ data }}</span>
 	</a>
 	{% endif %} {% endfor %} {% endfor %}

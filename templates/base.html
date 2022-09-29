@@ -24,6 +24,13 @@
 				<form action="/marketcap">
 					<button>Market Cap</button>
 				</form>
+				<form action="/search">
+					<input
+						type="text"
+						placeholder="검색할 종목을 입력하세요."
+						name="keyword"
+					/>
+				</form>
 			</nav>
 		</header>
 		<main class="container">{% block content %} {% endblock %}</main>

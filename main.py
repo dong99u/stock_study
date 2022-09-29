@@ -1,11 +1,14 @@
+from http import client
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36'}
+
 
 def set_dataframe(df: object, arr_img_list: list) -> object:
     def add_icon(x):
@@ -65,6 +68,7 @@ def market_cap():
 
     df = pd.DataFrame()
     arr_img_list = []
+    company_code_list = []
 
     PAGES = 3
 
@@ -80,14 +84,16 @@ def market_cap():
 
         items = driver.find_elements(By.XPATH, '//div[@class="box_type_l"]/table[1]/tbody/tr[@*]/td[4]/img')
         for item in items:
-            arr_img_list.append(item.get_attribute('alt'))
-        company_href_list = []
-        for obj in driver.find_element(By.CLASS_NAME, 'box_type_l').find_elements(By.TAG_NAME, 'a'):
-            company_href_list.append(obj.get_attribute('href'))
-            
+            arr_img_list.append(item.get_attribute('src'))
+
+
+        objs = driver.find_elements(By.CLASS_NAME, 'tltle')
+        for obj in objs:
+            company_code_list.append(obj.get_attribute('href').split('=')[1])
+
     df = set_dataframe(df, arr_img_list)
 
-    return df, len(df.columns), company_href_list
+    return df, company_code_list
 
 def last_search_items():
     try:
@@ -122,7 +128,7 @@ def day_sise(company_code):
     soup = BeautifulSoup(res.text, 'lxml')
     company_title = soup.find('div', 'wrap_company').find('a').get_text()
 
-    PAGES = 7
+    PAGES = 10
 
     df = pd.DataFrame()
     for page in range(1, PAGES):
@@ -135,9 +141,14 @@ def day_sise(company_code):
         
         df = pd.concat([df, df_temp])
     df.reset_index(drop=False, inplace=True)
+    
     return company_title, df
 
 app = Flask(__name__)
+
+db = {
+
+}
 
 @app.route('/')
 def index():
@@ -146,21 +157,70 @@ def index():
 
 @app.route('/marketcap')
 def marketcap():
-    df, length_df = market_cap()
-    return render_template('market_cap.html', df=df, length_df=length_df)
+    if 'df' in db:
+        df=db['df']
+        company_code_list = db['company_code_list'][:]
+        print(db['company_code_list'])
+        return render_template('company_list.html', df=df, length_df=len(df.columns), company_code_list=company_code_list)
+    else:
+        df, company_code_list = market_cap()
+        db['df'] = df
+        db['company_code_list'] = company_code_list[:]
+        print(db['company_code_list'])
+        return render_template('company_list.html', df=df, length_df=len(df.columns), company_code_list=company_code_list)
 
 @app.route('/last')
 def last_search():
     df, company_code_list = last_search_items()
-    return render_template('last_search.html', df=df, length_df=len(df.columns), company_code_list=company_code_list)
+    return render_template('company_list.html', df=df, length_df=len(df.columns), company_code_list=company_code_list)
 
-@app.route('/last/<companycode>')
+@app.route('/<companycode>')
 def show_day_sise(companycode):
     company_title, df = day_sise(companycode)
     labels = [lab for lab in df['날짜']]
-    values = [val for val in df['종가']]
+    closing_prices = [val for val in df['종가']]
+    tendency = [labels[0], labels[-1], closing_prices[0], closing_prices[-1]]
 
+    client_id = 'tnFL03d6Tv4pmmGfnVNk'
+    client_secret = 'yqpxRDxqmV'
 
-    return render_template('company.html', df=df, company_title=company_title, labels=labels, values=values)
+    naver_open_api = f'https://openapi.naver.com/v1/search/news.json?query={company_title}&display=10&sort=sim'
+    header_params = {'X-Naver-Client-Id': client_id, 'X-Naver-Client-Secret': client_secret}
+
+    res = requests.get(naver_open_api, headers=header_params)
+    if res.status_code == 200:
+        data = res.json()
+        scripts = data['items']
+        
+    else:
+        print("Error Code", res.status_code)
+
+    return render_template('company.html', df=df, company_title=company_title, labels=labels, closing_prices=closing_prices, tendency=tendency, scripts=scripts)
+
+@app.route('/search')
+def search():
+    keyword = request.args.get('keyword').replace(' ', '')
+        # 옵션 생성
+    options = webdriver.ChromeOptions()
+    # 창 숨기는 옵션 추가
+    options.add_argument('user-agent='+'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36')
+    # driver 실행
+    driver = webdriver.Chrome('C:/Users/parkdongkyu/Desktop/Hwibong_project/chromedriver.exe', options=options)
+
+    url = 'https://finance.naver.com/'
+    driver.get(url)
+    box = driver.find_element(By.ID, 'stock_items')
+    box.send_keys(keyword)
+    box.send_keys(Keys.ENTER)
+    print(keyword)
+    objs = driver.find_element(By.TAG_NAME, 'tbody').find_elements(By.TAG_NAME, 'a')
+    company_code_list = []
+    for obj in objs:
+        company_code_list.append(obj.get_attribute('href').split('=')[1])
+    search_result = pd.read_html(driver.page_source)[0]
+    print(search_result)
+
+    return render_template('search.html', keyword=keyword, df=search_result, company_code_list=company_code_list, length_df=len(search_result.columns))
+
 
 app.run(debug=True)

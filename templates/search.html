@@ -1,0 +1,17 @@
+{% extends 'base.html' %} {% block title %} Hwibong Finance - {{ keyword }} {%
+endblock %} {% block head %}
+<style>
+	.grid_container {
+		display: grid;
+		grid-template-columns: repeat({{length_df}}, minmax(50px, auto));
+		gap: 10px;
+	}
+	a:link,
+	a:visited {
+		color: #bbc6ce;
+	}
+</style>
+{% endblock %} {% block content %}
+{{df}}
+</section>
+{% endblock %}
