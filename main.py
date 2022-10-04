@@ -1,4 +1,3 @@
-from http import client
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -196,31 +195,5 @@ def show_day_sise(companycode):
         print("Error Code", res.status_code)
 
     return render_template('company.html', df=df, company_title=company_title, labels=labels, closing_prices=closing_prices, tendency=tendency, scripts=scripts)
-
-@app.route('/search')
-def search():
-    keyword = request.args.get('keyword').replace(' ', '')
-        # 옵션 생성
-    options = webdriver.ChromeOptions()
-    # 창 숨기는 옵션 추가
-    options.add_argument('user-agent='+'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36')
-    # driver 실행
-    driver = webdriver.Chrome('C:/Users/parkdongkyu/Desktop/Hwibong_project/chromedriver.exe', options=options)
-
-    url = 'https://finance.naver.com/'
-    driver.get(url)
-    box = driver.find_element(By.ID, 'stock_items')
-    box.send_keys(keyword)
-    box.send_keys(Keys.ENTER)
-    print(keyword)
-    objs = driver.find_element(By.TAG_NAME, 'tbody').find_elements(By.TAG_NAME, 'a')
-    company_code_list = []
-    for obj in objs:
-        company_code_list.append(obj.get_attribute('href').split('=')[1])
-    search_result = pd.read_html(driver.page_source)[0]
-    print(search_result)
-
-    return render_template('search.html', keyword=keyword, df=search_result, company_code_list=company_code_list, length_df=len(search_result.columns))
-
 
 app.run(debug=True)
