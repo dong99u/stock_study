@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36'}
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
 
 
 def set_dataframe(df: object, arr_img_list: list) -> object:
@@ -30,13 +30,6 @@ def set_dataframe(df: object, arr_img_list: list) -> object:
     
     return df
 
-def get_company_code(url: str) -> list:
-    res = requests.get(url, headers=headers)
-    res.raise_for_status()
-    soup = BeautifulSoup(res.text, 'lxml')
-
-    return
-
 def market_cap():
 
     # 옵션 생성
@@ -45,7 +38,7 @@ def market_cap():
     options.add_argument("headless")
 
     # driver 실행
-    driver = webdriver.Chrome('C:/Users/parkdongkyu/Desktop/Hwibong_project/chromedriver.exe', options=options)
+    driver = webdriver.Chrome(options=options)
 
     url = 'https://finance.naver.com/sise/sise_market_sum.naver?&page='
     driver.get(url)
@@ -159,13 +152,11 @@ def marketcap():
     if 'df' in db:
         df=db['df']
         company_code_list = db['company_code_list'][:]
-        print(db['company_code_list'])
         return render_template('company_list.html', df=df, length_df=len(df.columns), company_code_list=company_code_list)
     else:
         df, company_code_list = market_cap()
         db['df'] = df
         db['company_code_list'] = company_code_list[:]
-        print(db['company_code_list'])
         return render_template('company_list.html', df=df, length_df=len(df.columns), company_code_list=company_code_list)
 
 @app.route('/last')
@@ -180,8 +171,8 @@ def show_day_sise(companycode):
     closing_prices = [val for val in df['종가']]
     tendency = [labels[0], labels[-1], closing_prices[0], closing_prices[-1]]
 
-    client_id = 'tnFL03d6Tv4pmmGfnVNk'
-    client_secret = 'yqpxRDxqmV'
+    client_id = 'qPFoGTkuZ1rhTGwV1_Z8'
+    client_secret = 'AfUEn2UjNc'
 
     naver_open_api = f'https://openapi.naver.com/v1/search/news.json?query={company_title}&display=10&sort=sim'
     header_params = {'X-Naver-Client-Id': client_id, 'X-Naver-Client-Secret': client_secret}
