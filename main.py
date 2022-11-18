@@ -2,12 +2,25 @@ import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
 
+def chromeWebdriver():
+    chrome_service = ChromeService(executable_path=ChromeDriverManager().install())
+    options = Options()
+    options.add_experimental_option('detach', True)
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    options.add_argument('--headless')
+
+    driver = webdriver.Chrome(service=chrome_service, options=options)
+
+    return driver
 
 def set_dataframe(df: object, arr_img_list: list) -> object:
     def add_icon(x):
@@ -38,7 +51,7 @@ def market_cap():
     options.add_argument("headless")
 
     # driver 실행
-    driver = webdriver.Chrome(options=options)
+    driver = chromeWebdriver()
 
     url = 'https://finance.naver.com/sise/sise_market_sum.naver?&page='
     driver.get(url)
@@ -115,10 +128,12 @@ def last_search_items():
         print(f'{ex} 오류가 발생했습니다.')
 
 def day_sise(company_code):
+
     url = f'https://finance.naver.com/item/sise.naver?code={company_code}'
     res = requests.get(url, headers=headers)
+    res.raise_for_status()
     soup = BeautifulSoup(res.text, 'lxml')
-    company_title = soup.find('div', 'wrap_company').find('a').get_text()
+    company_title = soup.find('div', 'wrap_company').find('h2').find('a').get_text()
 
     PAGES = 10
 
@@ -164,11 +179,13 @@ def last_search():
     df, company_code_list = last_search_items()
     return render_template('company_list.html', df=df, length_df=len(df.columns), company_code_list=company_code_list)
 
-@app.route('/<companycode>')
+@app.route('/company/<companycode>')
 def show_day_sise(companycode):
     company_title, df = day_sise(companycode)
     labels = [lab for lab in df['날짜']]
+    labels.reverse()
     closing_prices = [val for val in df['종가']]
+    closing_prices.reverse()
     tendency = [labels[0], labels[-1], closing_prices[0], closing_prices[-1]]
 
     client_id = 'qPFoGTkuZ1rhTGwV1_Z8'
