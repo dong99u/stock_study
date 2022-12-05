@@ -45,11 +45,6 @@ def set_dataframe(df: object, arr_img_list: list) -> object:
 
 def market_cap():
 
-    # 옵션 생성
-    options = webdriver.ChromeOptions()
-    # 창 숨기는 옵션 추가
-    options.add_argument("headless")
-
     # driver 실행
     driver = chromeWebdriver()
 
@@ -204,4 +199,4 @@ def show_day_sise(companycode):
 
     return render_template('company.html', df=df, company_title=company_title, labels=labels, closing_prices=closing_prices, tendency=tendency, scripts=scripts)
 
-app.run(debug=True)
+app.run()
